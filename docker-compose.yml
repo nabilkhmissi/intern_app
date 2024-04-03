@@ -1,0 +1,8 @@
+version: '3'
+services:
+  pma:
+    container_name: intern_db
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
