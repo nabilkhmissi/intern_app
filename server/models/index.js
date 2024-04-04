@@ -3,5 +3,6 @@ module.exports = {
     Certification : require('./certification'),
     Skill : require('./skill'),
     Project : require('./project'),
-    User : require("./user")
+    User : require("./user"),
+    ROLES : require("./ROLES")
 }

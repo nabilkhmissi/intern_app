@@ -1,6 +1,6 @@
 module.exports =  Object.freeze({
     admin: "ADMIN", 
-    user: "USER",
+    stagiaire: "STAGIAIRE",
     assistant : "ASSISTANT",
     encadrant :  "ENCADRANT"
 })

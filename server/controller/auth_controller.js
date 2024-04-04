@@ -1,5 +1,7 @@
 const { User } = require("../models")
 const {ApiError} = require("../utils")
+const  { validateUser } = require("../validators")
+const fs = require("fs")
 
 const { genSalt, hashPassword, validatePassword } = require("../utils/password-utility")
 const { generate_signature } = require("../utils/jwt")
@@ -10,12 +12,31 @@ module.exports.signup = async (req, res, next)=>{
         if(existUser){
             throw new ApiError("Email already in use", 500);
         }
+        
+        if(!validateUser(req.body)){
+            fs.unlink(req.file.path, (err) => {
+                if (err) {
+                  console.error('Error deleting file:', err);
+                }
+              });
+              console.log(req.body)
+            throw new ApiError("Please fill all fields", 400)
+        }
+
+        if (req.file.filename) {
+            req.body.image = req.file.filename;
+        }
+
+
         const salt = await genSalt();
-        const hashed_pwd = await hashPassword(req.body.password, salt); 
+        const hashed_pwd = await hashPassword(req.body.password, salt);
+        
+        
         const user = await User.create({
             ...req.body, 
             salt : salt, 
-            password: hashed_pwd
+            password: hashed_pwd,
+
         });
         return res.status(200).send({ message : "user created", data : user })
     } catch (error) {
@@ -31,7 +52,7 @@ module.exports.login = async (req, res, next)=>{
         }
         const user = await User.findOne({ email : email });
         if(!user){
-            throw new ApiError("Invalid email/Password", 404)
+            throw new ApiError("User with this email not found", 404)
         }
 
         const isPasswordValid = await validatePassword(password, user.password, user.salt);
@@ -53,8 +74,4 @@ module.exports.login = async (req, res, next)=>{
     } catch (error) {
         next(error)
     }
-}
-
-module.exports.test = (req, res)=>{
-    res.status(200).send("data")
 }

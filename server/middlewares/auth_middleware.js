@@ -5,7 +5,6 @@ const { ApiError, jwt } = require("../utils")
 module.exports = async (req, res, next)=>{
     try {
         let token = req.headers.authorization;
-        console.log(token)
         if(!token || !token.startsWith("Bearer")){
             throw new ApiError("You have to login to perform this action", 403)
         } 
@@ -13,8 +12,7 @@ module.exports = async (req, res, next)=>{
         token = token.split(" ")[1];
 
         //validate token
-        const isTokenValid = jwt.validate_token(token);
-        if(!token){
+        if(!jwt.validate_token(token)){
             throw new ApiError("Invalid token", 403)
         }
 
@@ -25,6 +23,8 @@ module.exports = async (req, res, next)=>{
         if(!user){
             throw new ApiError("You have to login to perform this action", 403)
         }
+
+        res.locals.user = user;
         next()
     } catch (error) {
         res.status(403).send({ message : "You have to login to perform this action" }) 

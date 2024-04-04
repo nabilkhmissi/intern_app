@@ -57,13 +57,12 @@ const user_schema = new Schema({
         type : String
     },
     isEnabled : {
-        type : Boolean
+        type : Boolean,
+        default : false
     },
     isBanned : {
-        type : Boolean
-    },
-    isActive : {
-        type : Boolean
+        type : Boolean,
+        default : false
     },
     cv : { type: Schema.Types.ObjectId, ref: 'Cv' }
 },
