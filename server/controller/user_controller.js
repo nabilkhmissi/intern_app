@@ -3,10 +3,6 @@ const user = require("../models/user")
 const { ApiError, password_utility } = require("../utils")
 const { validateUser } = require("../validators")
 
-module.exports.findAll = (req, res)=>{
-    return res.status(200).send("admin endpoint")
-}
-
 module.exports.findAll = async (req, res)=>{
     const users = await User.find();
     return res.status(200).send({ message : "users found successfully", data : users })

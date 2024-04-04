@@ -27,6 +27,6 @@ module.exports = async (req, res, next)=>{
         res.locals.user = user;
         next()
     } catch (error) {
-        res.status(403).send({ message : "You have to login to perform this action" }) 
+        res.status(403).send({ message : error.message }) 
     }
 }

@@ -1,21 +1,21 @@
 const router = require("express").Router();
+const { checkAdminMiddleware } = require("../middlewares")
 
 const { userController } = require("../controller")
-const { authMiddleware } = require("../middlewares")
 const { upload } = require("../utils");
 
-router.get("", authMiddleware, userController.findAll)
-router.get("/stagiaires", authMiddleware, userController.findAllStagiaires)
-router.get("/banned", authMiddleware, userController.findBannedUsers)
-router.get("/inactive", authMiddleware, userController.findInactiveUsers)
-router.get("/ban/:id", authMiddleware, userController.banUser)
-router.get("/enable/:id", authMiddleware, userController.enableUser)
+router.get("", checkAdminMiddleware, userController.findAll)
+router.get("/stagiaires", userController.findAllStagiaires)
+router.get("/banned", userController.findBannedUsers)
+router.get("/inactive", userController.findInactiveUsers)
+router.get("/ban/:id", userController.banUser)
+router.get("/enable/:id", userController.enableUser)
 
-router.post("/role/update", authMiddleware, userController.updateRole)
-router.post("/password/update", authMiddleware, userController.updatePassword)
-router.put("/:id", upload.single("image"), authMiddleware, userController.updateUser)
+router.post("/role/update", userController.updateRole)
+router.post("/password/update", userController.updatePassword)
+router.put("/:id", upload.single("image"), userController.updateUser)
 
-router.get("/:id", authMiddleware, userController.findById)
+router.get("/:id", userController.findById)
 
 
 
