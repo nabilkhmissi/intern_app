@@ -1,6 +1,7 @@
 const { User, ROLES } = require("../models")
 const user = require("../models/user")
 const { ApiError, password_utility } = require("../utils")
+const { validateUser } = require("../validators")
 
 module.exports.findAll = (req, res)=>{
     return res.status(200).send("admin endpoint")
@@ -139,8 +140,33 @@ module.exports.updatePassword = async (req, res, next)=>{
                 throw new ApiError("Select a valid user ID", 400);
             }
             
-            const user = await User.find({ _id : id });
+            const user = await User.findById(id);
             return res.status(200).send({ message : "User retrieved successfully", data : user })
+        
+        } catch (error) {
+            next(error)
+        }
+    }
+    
+
+     //update user
+
+     module.exports.updateUser = async (req, res, next)=>{
+        try {
+            const id = req.params.id
+            if(!id){
+                throw new ApiError("Select a valid user ID", 400);
+            }
+            const isUserValid = validateUser(req.body);
+            if (req.file.filename) {
+                req.body.image = req.file.filename;
+            }
+            if(!isUserValid){
+                throw new ApiError("Please fill all fields", 400)
+            }
+            //todo remove old image fromfolder
+            const updatedUser = await User.findByIdAndUpdate(id, { $set: req.body });
+            return res.status(200).send({ message : "User updated successfully", data : updatedUser })
         
         } catch (error) {
             next(error)

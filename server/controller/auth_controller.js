@@ -19,7 +19,6 @@ module.exports.signup = async (req, res, next)=>{
                   console.error('Error deleting file:', err);
                 }
               });
-              console.log(req.body)
             throw new ApiError("Please fill all fields", 400)
         }
 
