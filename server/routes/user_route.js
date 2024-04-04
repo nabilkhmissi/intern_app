@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { checkAdminMiddleware } = require("../middlewares")
 
-const { userController } = require("../controller")
+const { userController, cvController } = require("../controller")
 const { upload } = require("../utils");
 
 router.get("", checkAdminMiddleware, userController.findAll)
@@ -16,6 +16,14 @@ router.post("/password/update", userController.updatePassword)
 router.put("/:id", upload.single("image"), userController.updateUser)
 
 router.get("/:id", userController.findById)
+
+//cv fonctionnalities
+
+router.post("/cv/educations", cvController.addEducation)
+router.post("/cv/certifications", cvController.addCertification)
+router.post("/cv/experiecnes", cvController.addExperience)
+router.post("/cv/skills", cvController.addSkill)
+router.post("/cv/projects", cvController.addProject)
 
 
 

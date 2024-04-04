@@ -4,5 +4,7 @@ module.exports = {
     Skill : require('./skill'),
     Project : require('./project'),
     User : require("./user"),
-    ROLES : require("./ROLES")
+    ROLES : require("./ROLES"),
+    Education : require("./education"),
+    Cv : require("./cv")
 }

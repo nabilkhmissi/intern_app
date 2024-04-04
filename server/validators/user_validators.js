@@ -1,6 +1,6 @@
 module.exports = validateUser = (user) => {
     if(
-        !user.fullName 
+           !user.fullName 
         || !user.email
         || !user.department
         || !user.phone

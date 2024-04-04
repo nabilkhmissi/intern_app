@@ -1,4 +1,4 @@
-const { User } = require("../models")
+const { User, Cv } = require("../models")
 const {ApiError} = require("../utils")
 const  { validateUser } = require("../validators")
 const fs = require("fs")
@@ -31,10 +31,12 @@ module.exports.signup = async (req, res, next)=>{
         const hashed_pwd = await hashPassword(req.body.password, salt);
         
         
+        const new_cv = await Cv.create({});
         const user = await User.create({
             ...req.body, 
             salt : salt, 
             password: hashed_pwd,
+            cv : new_cv
 
         });
         return res.status(200).send({ message : "user created", data : user })
