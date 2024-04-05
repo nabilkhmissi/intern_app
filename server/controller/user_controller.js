@@ -1,7 +1,7 @@
 const { User, ROLES } = require("../models")
-const user = require("../models/user")
 const { ApiError, password_utility } = require("../utils")
 const { validateUser } = require("../validators")
+const fs = require("fs")
 
 module.exports.findAll = async (req, res)=>{
     const users = await User.find();
@@ -26,25 +26,27 @@ module.exports.findInactiveUsers = async (req, res)=>{
 //ban and unban user
 
 module.exports.banUser = async (req, res)=>{
-    const id = req.params.id;
-    if(!id){
-        throw new ApiError("Select a valid user ID", 404);
+    try {
+        const id = req.params.id;
+        if(!id){
+            throw new ApiError("Select a valid user ID", 404);
+        }
+    
+        const userToBan = await User.findById(id);
+        userToBan.isBanned = !userToBan.isBanned;
+        const updatedUser = await userToBan.save();
+        if(updatedUser.isBanned){
+            return res.status(200).send({ message : "User banned successfully" })
+        }
+        return res.status(200).send({ message : "User unbanned successfully" })
+    } catch (error) {
+        next(error)
     }
-
-    const userToBan = await User.findById(id);
-    userToBan.isBanned = !userToBan.isBanned;
-    const updatedUser = await userToBan.save();
-    if(updatedUser.isBanned){
-        return res.status(200).send({ message : "User banned successfully" })
-    }
-    return res.status(200).send({ message : "User unbanned successfully" })
-
 }
 
 //enable and disable a user
 
 module.exports.enableUser = async (req, res, next)=>{
-    console.log("enable user ")
     try {
         const id = req.params.id;
         if(!id){
@@ -52,6 +54,9 @@ module.exports.enableUser = async (req, res, next)=>{
         }
         
         const user = await User.findById(id);
+        if(!user){
+            throw new ApiError("User with this ID not found", 400)
+        }
         user.isEnabled = !user.isEnabled;
         const updatedUser = await user.save();
         if(updatedUser.isEnabled){
@@ -60,7 +65,7 @@ module.exports.enableUser = async (req, res, next)=>{
         return res.status(200).send({ message : "User disabled successfully" })
         
     } catch (error) {
-     next();   
+     next(error);   
     }
 }
 
@@ -68,7 +73,6 @@ module.exports.enableUser = async (req, res, next)=>{
 // update user role
 
 module.exports.updateRole = async (req, res, next)=>{
-    console.log("update role")
     try {
         const {id, role} = req.body;
         if(!id){
@@ -84,16 +88,14 @@ module.exports.updateRole = async (req, res, next)=>{
         return res.status(200).send({ message : "Role updated successfully" })
         
     } catch (error) {
-        next()
+        next(error)
     }
 }
     //change password
 
 module.exports.updatePassword = async (req, res, next)=>{
-    console.log("update password")
     try {
         const {id, oldPassword, newPassword, confirmNewPassword} = req.body;
-        console.log(id, oldPassword, newPassword, confirmNewPassword)
         if(!id){
             throw new ApiError("Select a valid user ID", 400);
         }
@@ -102,7 +104,6 @@ module.exports.updatePassword = async (req, res, next)=>{
             throw new ApiError("Please provide a valid password", 400);
         }
         
-        console.log("finding user")
         const user = await User.findById(id);
 
 
@@ -119,7 +120,7 @@ module.exports.updatePassword = async (req, res, next)=>{
     
     user.password = await password_utility.hashPassword(newPassword, user.salt);
     
-    const updatedUser = await user.save();
+    await user.save();
     return res.status(200).send({ message : "Password updated successfully" })
     
     } catch (error) {
@@ -127,45 +128,73 @@ module.exports.updatePassword = async (req, res, next)=>{
     }
 }
 
-    //find by id
+//find by id
 
-    module.exports.findById = async (req, res, next)=>{
-        try {
-            const id = req.params.id
-            if(!id){
-                throw new ApiError("Select a valid user ID", 400);
-            }
-            
-            const user = await User.findById(id);
-            return res.status(200).send({ message : "User retrieved successfully", data : user })
-        
-        } catch (error) {
-            next(error)
+module.exports.findById = async (req, res, next)=>{
+    try {
+        const id = req.params.id
+        if(!id){
+            throw new ApiError("Select a valid user ID", 400);
         }
-    }
-    
-
-     //update user
-
-     module.exports.updateUser = async (req, res, next)=>{
-        try {
-            const id = req.params.id
-            if(!id){
-                throw new ApiError("Select a valid user ID", 400);
-            }
-            const isUserValid = validateUser(req.body);
-            if (req.file.filename) {
-                req.body.image = req.file.filename;
-            }
-            if(!isUserValid){
-                throw new ApiError("Please fill all fields", 400)
-            }
-            //todo remove old image fromfolder
-            const updatedUser = await User.findByIdAndUpdate(id, { $set: req.body });
-            return res.status(200).send({ message : "User updated successfully", data : updatedUser })
         
-        } catch (error) {
-            next(error)
-        }
+        const user = await User.findById(id);
+        return res.status(200).send({ message : "User retrieved successfully", data : user })
+
+    } catch (error) {
+        next(error)
     }
-    
+}
+
+//update user
+
+module.exports.updateUser = async (req, res, next)=>{
+    try {
+        const id = req.params.id
+        if(!id){
+            throw new ApiError("Select a valid user ID", 400);
+        }
+        const isUserValid = validateUser(req.body);
+
+        if(!isUserValid){
+            throw new ApiError("Please fill all fields", 400)
+        }
+        const updatedUser = await User.findByIdAndUpdate(id, { $set: req.body });
+        return res.status(200).send({ message : "User updated successfully", data : updatedUser })
+
+    } catch (error) {
+        next(error)
+    }
+}
+//update avatar
+module.exports.updateAvatar = async (req, res, next)=>{
+    try {
+        const id = req.params.id;
+        
+        if(!id){
+            throw new ApiError("Invalid user ID", 400);
+        }
+
+        const currentUser = await User.findById(id);
+
+        if(!currentUser){
+            throw new ApiError("User with this id not found", 400)
+        }
+
+        if (req.file.filename) {
+            req.body.image = req.file.filename;
+            //delete old image
+            // fs.unlink(currentUser.image, (err) => {
+            //     if (err) {
+            //       console.error('Error deleting file:', err);
+            //     }
+            // });
+            currentUser.image = req.body.image;
+        }
+        
+        const updated_user =  await currentUser.save();
+        return res.status(200).send({ message : "Avatar updated successfully", data : updated_user })
+
+    } catch (error) {
+        next(error)
+    }
+}

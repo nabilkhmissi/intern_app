@@ -14,25 +14,24 @@ module.exports.signup = async (req, res, next)=>{
         }
         
         if(!validateUser(req.body)){
-            fs.unlink(req.file.path, (err) => {
-                if (err) {
-                  console.error('Error deleting file:', err);
-                }
-              });
+            // fs.unlink(req.file.path, (err) => {
+            //     if (err) {
+            //       console.error('Error deleting file:', err);
+            //     }
+            // });
             throw new ApiError("Please fill all fields", 400)
         }
 
-        if (req.file.filename) {
-            req.body.image = req.file.filename;
-        }
-
+        // if (req.file.filename) {
+        //     req.body.image = req.file.filename;
+        // }
 
         const salt = await genSalt();
         const hashed_pwd = await hashPassword(req.body.password, salt);
         
         
         const new_cv = await Cv.create({});
-        const user = await User.create({
+        await User.create({
             ...req.body, 
             salt : salt, 
             password: hashed_pwd,
