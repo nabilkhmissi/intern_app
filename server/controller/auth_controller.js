@@ -14,17 +14,9 @@ module.exports.signup = async (req, res, next)=>{
         }
         
         if(!validateUser(req.body)){
-            // fs.unlink(req.file.path, (err) => {
-            //     if (err) {
-            //       console.error('Error deleting file:', err);
-            //     }
-            // });
+         
             throw new ApiError("Please fill all fields", 400)
         }
-
-        // if (req.file.filename) {
-        //     req.body.image = req.file.filename;
-        // }
 
         const salt = await genSalt();
         const hashed_pwd = await hashPassword(req.body.password, salt);
@@ -35,7 +27,8 @@ module.exports.signup = async (req, res, next)=>{
             ...req.body, 
             salt : salt, 
             password: hashed_pwd,
-            cv : new_cv
+            cv : new_cv,
+            image : "avatar.jpg"
 
         });
         return res.status(200).send({ message : "user created"})
