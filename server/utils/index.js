@@ -3,5 +3,5 @@ module.exports = {
     jwt : require("./jwt"),
     error_handler : require("./error-handler"),
     ApiError : require("./api-error"),
-    upload : require("./fileStorageEngine")
+    upload : require("./fileStorageEngine"),
 }

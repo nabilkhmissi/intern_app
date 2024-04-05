@@ -39,7 +39,7 @@ module.exports.signup = async (req, res, next)=>{
             cv : new_cv
 
         });
-        return res.status(200).send({ message : "user created", data : user })
+        return res.status(200).send({ message : "user created"})
     } catch (error) {
         next(error)
     }

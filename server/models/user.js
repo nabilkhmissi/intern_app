@@ -64,7 +64,7 @@ const user_schema = new Schema({
         type : Boolean,
         default : false
     },
-    cv : { type: Schema.Types.ObjectId, ref: 'Cv' }
+    cv : { type: mongoose.Schema.Types.ObjectId, ref: 'Cv' }
 },
 {
     timestamps : true
