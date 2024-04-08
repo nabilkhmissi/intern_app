@@ -6,5 +6,7 @@ module.exports = {
     User : require("./user"),
     ROLES : require("./ROLES"),
     Education : require("./education"),
-    Cv : require("./cv")
+    Cv : require("./cv"),
+    PfeBook : require("./pfe_book"),
+    OffreStage : require("./offre_stage"),
 }
