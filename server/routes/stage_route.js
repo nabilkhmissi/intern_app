@@ -5,7 +5,11 @@ const { upload } = require("../utils");
 router.get("/pfebook", stageController.getPfeBooks)
 router.post("/pfebook",upload.single("file"), stageController.createPfeBook)
 
-router.post("/offre", stageController.createOffreStage);
+// ================= Offre de stage =======================
+router.post("/offres", stageController.createOffreStage);
+router.get("/offres", stageController.findAllOffres);
+router.delete("/offres/:id", stageController.deleteOffer);
+router.put("/offres/:id", stageController.updateOffer);
 
 
 
