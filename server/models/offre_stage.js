@@ -9,7 +9,8 @@ const offreStage_model = new Schema({
     technologies : [ { type : String, required : true } ],
     duration : {  type : Number , required : true},
     capacity : {  type : Number , required : true},
-    isExpired : { type : Boolean, required : false, default : false }
+    isExpired : { type : Boolean, required : false, default : false },
+    candidates : [{ type : mongoose.Schema.Types.ObjectId , ref : "User"}]
 })
 
 module.exports = mongoose.model("OffreStage",offreStage_model)

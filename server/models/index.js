@@ -9,4 +9,5 @@ module.exports = {
     Cv : require("./cv"),
     PfeBook : require("./pfe_book"),
     OffreStage : require("./offre_stage"),
+    OffreApplication : require("./offer_application"),
 }

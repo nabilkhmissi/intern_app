@@ -1,4 +1,4 @@
-const { PfeBook, OffreStage } = require("../models");
+const { PfeBook, OffreStage, User, OffreApplication } = require("../models");
 const { ApiError } = require("../utils");
 const { validatePfebook, validateOffreStage } = require("../validators");
 
@@ -44,8 +44,13 @@ module.exports.createOffreStage = async (req, res, next)=>{
 }
 module.exports.findAllOffres = async (req, res, next)=>{
     try {
-        const offres = await OffreStage.find({});
-
+        const { isExpired } = req.query;
+        let offres;
+        if(isExpired != undefined){
+            offres = await OffreStage.find({ isExpired : isExpired });
+        }else{
+            offres = await OffreStage.find();
+        }
         return res.status(200).send({ message : "Offre stage retrieved successfully", data : offres });
 
     } catch (error) {
@@ -79,11 +84,79 @@ module.exports.updateOffer = async (req, res, next)=>{
             throw new ApiError("Offer stage with this ID not found", 400);
         }
 
-        const updated_offer = await OffreStage.findOneAndUpdate({ _id : req.params.id }.id, { $set: req.body }, {returnOriginal : false});
+        const updated_offer = await OffreStage.findOneAndUpdate({ _id : req.params.id }, { $set: req.body }, {returnOriginal : false});
 
         return res.status(200).send({ message : "Offre updated successfully", data : updated_offer });
 
     } catch (error) {
         next(error);
     }   
+}
+
+module.exports.apply = async (req, res, next)=>{
+    try {
+        if(!req.params.id){
+            throw new ApiError("Invalid Offer ID", 400);
+        }
+        if(!req.params.userId){
+            throw new ApiError("Invalid User ID", 400);
+        }
+        const offre = await OffreStage.findById(req.params.id);
+        const user = await User.findById(req.params.userId);
+        const application = await OffreApplication.findOne({ user : req.params.userId, offer : req.params.id });
+
+        if(!application){
+            await OffreApplication.create({ user : req.params.userId, offer : req.params.id });
+            return res.status(200).send({ message : "Application sent successfully"});
+        }else{
+            await OffreApplication.deleteOne({ user : req.params.userId, offer : req.params.id });
+            return res.status(200).send({ message : "Application cancelled successfully"});
+        }
+
+    } catch (error) {
+        next(error);
+    }   
+}
+
+module.exports.getAllApplications = async (req, res, next)=>{
+    try {
+       
+        const applications = await OffreApplication.find({}).populate("user offer")
+        return res.status(200).send({ message : "Applications retrieved successfully", data : applications });
+    } catch (error) {
+        next(error);
+    }
+}
+module.exports.findApplicationsByUserId = async (req, res, next)=>{
+    try {
+        if(!req.params.userId){
+            throw new ApiError("Invalid user ID", 400);
+        }
+        const applications = await OffreApplication.find({ user : req.params.userId }).populate("user offer");
+        return res.status(200).send({ message : "Applications retrieved successfully", data : applications });
+    } catch (error) {
+        next(error);
+    }
+}
+//TODO : should email candidate whenever the application approved
+module.exports.approveApplication = async (req, res, next)=>{
+    try {
+        if(!req.params.id){
+            throw new ApiError("Invalid application ID", 400);
+        }
+        const application = await OffreApplication.findById(req.params.id).populate("user offer");
+        if(!application){
+            throw new ApiError("Application with this id not found", 400);
+        }
+        application.isAccepted = !application.isAccepted;
+        const updatedApplication = await application.save();
+
+        if(updatedApplication.isAccepted){
+            return res.status(200).send({ message : "Applications approved successfully", data : updatedApplication });
+        }else{
+            return res.status(200).send({ message : "Applications disapproved successfully", data : updatedApplication });
+        }
+    } catch (error) {
+        next(error);
+    }
 }
