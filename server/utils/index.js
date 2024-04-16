@@ -4,4 +4,5 @@ module.exports = {
     error_handler : require("./error-handler"),
     ApiError : require("./api-error"),
     upload : require("./fileStorageEngine"),
+    initAdminAccount : require("./initAdminAccount")
 }

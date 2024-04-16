@@ -5,9 +5,11 @@ const path = require("path")
 const { auth_route, user_route, stage_route } = require("./routes")
 const error_handler = require("./utils/error-handler")
 const { authMiddleware, checkBanMiddleware } = require("./middlewares")
+const { initAdminAccount } = require("./utils")
 
 
 const app = express();
+initAdminAccount();
 /* static files */
 app.use('/static/images', express.static(path.join(__dirname, './files/images')))
 app.use('/static/files', express.static(path.join(__dirname, './files/uploads')))

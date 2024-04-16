@@ -1,4 +1,7 @@
-const { PfeBook, OffreStage, User, OffreApplication } = require("../models");
+const { PfeBook, OffreStage, User, OffreApplication, Status, app_status, StageTask } = require("../models");
+const { encadrant } = require("../models/ROLES");
+const offer_application = require("../models/offer_application");
+const stage_tasks = require("../models/stage_tasks");
 const { ApiError } = require("../utils");
 const { validatePfebook, validateOffreStage } = require("../validators");
 
@@ -139,7 +142,7 @@ module.exports.findApplicationsByUserId = async (req, res, next)=>{
     }
 }
 //TODO : should email candidate whenever the application approved
-module.exports.approveApplication = async (req, res, next)=>{
+module.exports.handleApplication = async (req, res, next)=>{
     try {
         if(!req.params.id){
             throw new ApiError("Invalid application ID", 400);
@@ -148,14 +151,106 @@ module.exports.approveApplication = async (req, res, next)=>{
         if(!application){
             throw new ApiError("Application with this id not found", 400);
         }
-        application.isAccepted = !application.isAccepted;
+        const action = req.params.action;
+        if(action === "accept"){
+            application.status = app_status.accepted;
+        }else{
+            application.status = app_status.rejected;
+        }
         const updatedApplication = await application.save();
 
-        if(updatedApplication.isAccepted){
-            return res.status(200).send({ message : "Applications approved successfully", data : updatedApplication });
+        if(action == "accept"){
+            return res.status(200).send({ message : "Applications accepted successfully", data : updatedApplication });
         }else{
-            return res.status(200).send({ message : "Applications disapproved successfully", data : updatedApplication });
+            return res.status(200).send({ message : "Applications rejected successfully", data : updatedApplication });
         }
+    } catch (error) {
+        next(error);
+    }
+}
+module.exports.setEncadrant = async (req, res, next)=>{
+    try {
+        if(!req.params.id){
+            throw new ApiError("Invalid application ID", 400);
+        }
+        const { encadrantId } = req.body;
+        if(!encadrantId){
+            throw new ApiError("Invalid encadrant ID");
+        }
+        const encadrant = await User.findById(encadrantId);
+        if(!encadrant){
+            throw new ApiError("Encadrant with this ID not found");
+        }
+        const application = await OffreApplication.findById(req.params.id).populate("user offer");
+        if(!application){
+            throw new ApiError("Application with this id not found", 400);
+        }
+        console.log("here")
+        application.encadrant = encadrant;
+        const updatedApplication = await application.save();
+
+        return res.status(200).send({ message : "Encadrant set successfully", data : updatedApplication });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports.createTask = async (req, res, next)=>{
+    try {
+        const applicationId = req.params.id;
+    
+        const app = await offer_application.findById(applicationId).populate("tasks");
+        if(!app){
+            throw new ApiError("Invalid Application ID");
+        }
+        const new_task = await StageTask.create(req.body);
+        app.tasks.push(new_task);
+        await app.save();
+        return res.status(200).send({ message : "Task created successfully", data : new_task });
+    } catch (error) {
+        next(error);
+    }
+
+}
+
+module.exports.deleteTask = async (req, res, next)=>{
+    try {
+    
+        await StageTask.deleteOne({ _id : req.params.id });
+
+        return res.status(200).send({ message : "Task deleted successfully" });
+    } catch (error) {
+        next(error);
+    }
+
+}
+
+module.exports.getApplicationTasks = async (req, res, next)=>{
+    try {
+        const applicationId = req.params.id;
+        const app = await offer_application.findById(applicationId).populate("tasks");
+        if(!app){
+            throw new ApiError("Invalid Application ID");
+        }
+
+        res.status(200).send({ message : "Tasks retrieved successfully", data : app });
+    } catch (error) {
+        next(error);
+    }
+}
+//todo
+module.exports.completeTask = async (req, res, next)=>{
+    try {
+        const taskId = req.params.id;
+        const task = await stage_tasks.findById(taskId);
+        if(!task){
+            throw new ApiError("Task not found");
+        }
+
+        task.status = taskStatus
+
+        res.status(200).send({ message : "Tasks retrieved successfully", data : app });
     } catch (error) {
         next(error);
     }

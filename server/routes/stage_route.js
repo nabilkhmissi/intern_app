@@ -16,7 +16,14 @@ router.get("/offres/:id/apply/user/:userId", stageController.apply)
 router.get("/applications", stageController.getAllApplications)
 router.get("/applications/user/:userId", stageController.findApplicationsByUserId)
 //admin only can approve
-router.get("/applications/:id/approve", stageController.approveApplication)
+router.get("/applications/:id/actions/:action", stageController.handleApplication)
+router.post("/applications/:id/encadrant/set", stageController.setEncadrant)
+// ================= Applications Tasks =======================
+router.post("/applications/:id/tasks", stageController.createTask)
+router.get("/applications/:id/tasks", stageController.getApplicationTasks)
+
+router.delete("/tasks/:id", stageController.deleteTask)
+router.get("/tasks/:id/complete", stageController.completeTask)
 
 
 
